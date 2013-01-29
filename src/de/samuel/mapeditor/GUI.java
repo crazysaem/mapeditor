@@ -11,8 +11,8 @@ import javax.swing.JSplitPane;
 public class GUI
 {
 	private JFrame frame;
-	private int width = 640;
-	private int height = 480;	
+	private int width = 832;
+	private int height = 600;	
 	
 	public GUI()
 	{
@@ -33,13 +33,12 @@ public class GUI
 		editor.setBackground(Color.red);
 
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, toolbar, editor);
-		splitPane.setOneTouchExpandable(true);
-		splitPane.setDividerLocation(150);
+		splitPane.setOneTouchExpandable(false);
+		splitPane.setDividerLocation(64);
+		splitPane.setDividerSize(0);
 
-		//Provide minimum sizes for the two components in the split pane
-		Dimension minimumSize = new Dimension(100, 50);
-		toolbar.setMinimumSize(minimumSize);
-		editor.setMinimumSize(minimumSize);
+		toolbar.setMinimumSize	(new Dimension(64, 224));
+		editor.setMinimumSize	(new Dimension(640, 480));
 		
 		frame.add(splitPane);
 	}
