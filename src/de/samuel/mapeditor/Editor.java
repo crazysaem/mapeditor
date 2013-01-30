@@ -8,6 +8,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
+import java.util.Vector;
 
 import javax.swing.JPanel;
 
@@ -90,12 +91,16 @@ public class Editor extends JPanel implements MouseMotionListener, MouseListener
 	
 	public void drawFreeLine(MouseEvent arg0, Color c)
 	{		
-		g2dEditor.setColor(c);			
+		g2dEditor.setColor(c);		
 		
-		for (int i=-brushSize; i<=brushSize; i++)
-		{					
-			g2dEditor.drawLine(xMouseOld, yMouseOld+i, arg0.getX(), arg0.getY()+i);						
-			g2dEditor.drawLine(xMouseOld+i, yMouseOld, arg0.getX()+i, arg0.getY());
+		Vector2d vec = new Vector2d(xMouseOld, yMouseOld, arg0.getX(), arg0.getY());
+		
+		for(int i=0; i<=vec.getLength(); i++)
+		{
+			double x = xMouseOld + ((double)i/vec.getLength()) * vec.getxDir();
+			double y = yMouseOld + ((double)i/vec.getLength()) * vec.getyDir();
+			
+			g2dEditor.fillRect((int)x - brushSize, (int)y  - brushSize, brushSize * 2, brushSize * 2);
 		}
 		
 		xMouseOld = arg0.getX();
@@ -116,10 +121,14 @@ public class Editor extends JPanel implements MouseMotionListener, MouseListener
 		g2dSstraightLine.setBackground(new Color(0, 0, 0, 0));
 		g2dSstraightLine.setColor(Color.white);
 		
-		for (int i=-brushSize; i<=brushSize; i++)
-		{					
-			g2dSstraightLine.drawLine(xMouseOld, yMouseOld+i, arg0.getX(), arg0.getY()+i);						
-			g2dSstraightLine.drawLine(xMouseOld+i, yMouseOld, arg0.getX()+i, arg0.getY());
+		Vector2d vec = new Vector2d(xMouseOld, yMouseOld, arg0.getX(), arg0.getY());
+		
+		for(int i=0; i<=vec.getLength(); i++)
+		{
+			double x = xMouseOld + ((double)i/vec.getLength()) * vec.getxDir();
+			double y = yMouseOld + ((double)i/vec.getLength()) * vec.getyDir();
+			
+			g2dSstraightLine.fillRect((int)x - brushSize, (int)y  - brushSize, brushSize * 2, brushSize * 2);
 		}
 		
 		g2dSstraightLine.dispose();
@@ -129,7 +138,31 @@ public class Editor extends JPanel implements MouseMotionListener, MouseListener
 
 	@Override
 	public void mouseMoved(MouseEvent arg0) 
-	{}
+	{
+		g2dEditor.clearRect(0, 0, width, height);
+		g2dEditor.drawImage(biBackup, 0, 0, new Color(0, 0, 0, 0), null);	
+		
+		BufferedImage 	biSstraightLine;
+		Graphics2D		g2dSstraightLine;
+				
+		biSstraightLine 	= new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		g2dSstraightLine 	= (Graphics2D)biSstraightLine.getGraphics();
+		
+		Color c = Color.white;
+		
+		if (tool.getToolNumber() == Tool.ERASER)
+		{
+			c = Color.red;
+		}
+		
+		g2dSstraightLine.setColor(c);
+		g2dSstraightLine.fillRect(arg0.getX() - brushSize, arg0.getY()  - brushSize, brushSize * 2, brushSize * 2);
+		
+		g2dSstraightLine.dispose();		
+		g2dEditor.drawImage(biSstraightLine, 0, 0, new Color(0, 0, 0, 0), null);	
+		
+		this.repaint();
+	}
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) 
@@ -159,6 +192,9 @@ public class Editor extends JPanel implements MouseMotionListener, MouseListener
 	@Override
 	public void mouseReleased(MouseEvent arg0) 
 	{
+		g2dBackup.clearRect(0, 0, width, height);
+		g2dBackup.drawImage(biEditor, 0, 0, new Color(0, 0, 0, 0), null);
+		
 		xMouseOld = -1;
 		yMouseOld = -1;		
 	}
