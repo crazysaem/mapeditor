@@ -13,23 +13,36 @@ import javax.swing.JPanel;
 
 public class Editor extends JPanel implements MouseMotionListener, MouseListener
 {
-	private BufferedImage 	bufferedImage;
-	private Graphics2D		graphics2D;
+	private static final int width = 800;
+	private static final int height = 600;
+	
+	private BufferedImage 	biEditor;
+	private Graphics2D		g2dEditor;
+	
+	private BufferedImage 	biBackup;
+	private Graphics2D		g2dBackup;	
 	
 	private int xMouseOld;
 	private int yMouseOld;
 	
 	private Tool tool;
 	
+	private int brushSize;
+	
 	public Editor()
 	{
-		bufferedImage 	= new BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB);
-		graphics2D 		= (Graphics2D)bufferedImage.getGraphics();
+		biEditor 	= new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		g2dEditor 	= (Graphics2D)biEditor.getGraphics();
+		
+		biBackup 	= new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		g2dBackup 	= (Graphics2D)biBackup.getGraphics();
 		
 		xMouseOld = -1;
 		yMouseOld = -1;
 		
 		tool = Tool.getInstance();
+		
+		brushSize = 6;
 		
 		addMouseMotionListener(this);
 		addMouseListener(this);
@@ -48,7 +61,7 @@ public class Editor extends JPanel implements MouseMotionListener, MouseListener
 
 	    g.drawImage(img, 0, 0, Color.black, null);*/		
 		
-		g.drawImage(bufferedImage, 0, 0, Color.black, null);	
+		g.drawImage(biEditor, 0, 0, Color.black, null);	
 	}
 
 	@Override
@@ -59,22 +72,59 @@ public class Editor extends JPanel implements MouseMotionListener, MouseListener
 		
 		switch (tool.getToolNumber())
 		{
+			case Tool.ERASER:
+				drawFreeLine(arg0, Color.black);
+			break;
+			
 			case Tool.FREEHAND:
-				if (xMouseOld != -1 && yMouseOld != -1)
-				{
-					graphics2D.drawLine(xMouseOld, yMouseOld, arg0.getX(), arg0.getY());
-				}
-				else
-				{
-					graphics2D.drawRect(arg0.getX(), arg0.getY(), 1, 1);
-				}
-		
-				this.repaint();
-				
-				xMouseOld = arg0.getX();
-				yMouseOld = arg0.getY();
+				drawFreeLine(arg0, Color.white);
+			break;
+			
+			case Tool.LINE:
+				drawStraightLine(arg0);
 			break;
 		}
+		
+		this.repaint();
+	}
+	
+	public void drawFreeLine(MouseEvent arg0, Color c)
+	{		
+		g2dEditor.setColor(c);			
+		
+		for (int i=-brushSize; i<=brushSize; i++)
+		{					
+			g2dEditor.drawLine(xMouseOld, yMouseOld+i, arg0.getX(), arg0.getY()+i);						
+			g2dEditor.drawLine(xMouseOld+i, yMouseOld, arg0.getX()+i, arg0.getY());
+		}
+		
+		xMouseOld = arg0.getX();
+		yMouseOld = arg0.getY();
+	}
+	
+	public void drawStraightLine(MouseEvent arg0)
+	{
+		g2dEditor.clearRect(0, 0, width, height);
+		g2dEditor.drawImage(biBackup, 0, 0, new Color(0, 0, 0, 0), null);	
+		
+		BufferedImage 	biSstraightLine;
+		Graphics2D		g2dSstraightLine;
+				
+		biSstraightLine 	= new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		g2dSstraightLine 	= (Graphics2D)biSstraightLine.getGraphics();
+		
+		g2dSstraightLine.setBackground(new Color(0, 0, 0, 0));
+		g2dSstraightLine.setColor(Color.white);
+		
+		for (int i=-brushSize; i<=brushSize; i++)
+		{					
+			g2dSstraightLine.drawLine(xMouseOld, yMouseOld+i, arg0.getX(), arg0.getY()+i);						
+			g2dSstraightLine.drawLine(xMouseOld+i, yMouseOld, arg0.getX()+i, arg0.getY());
+		}
+		
+		g2dSstraightLine.dispose();
+	
+		g2dEditor.drawImage(biSstraightLine, 0, 0, new Color(0, 0, 0, 0), null);	
 	}
 
 	@Override
@@ -95,7 +145,16 @@ public class Editor extends JPanel implements MouseMotionListener, MouseListener
 
 	@Override
 	public void mousePressed(MouseEvent arg0)
-	{}
+	{
+		xMouseOld = arg0.getX();
+		yMouseOld = arg0.getY();
+		
+		if (tool.getToolNumber() == Tool.LINE)
+		{
+			g2dBackup.clearRect(0, 0, width, height);
+			g2dBackup.drawImage(biEditor, 0, 0, new Color(0, 0, 0, 0), null);	
+		}
+	}
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) 
